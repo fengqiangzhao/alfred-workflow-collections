@@ -27,13 +27,11 @@ func str2TS(arg string) int64 {
 		t := time.Now()
 		ts := t.Unix()
 		_, offset := t.Local().Zone()
-		fmt.Println(t, ts, offset)
 		return ts - ts%86400 - int64(offset)
 	} else if strings.ToUpper(arg) == "TOMORROW" {
 		t := time.Now()
 		ts := t.Unix()
 		_, offset := t.Local().Zone()
-		fmt.Println(t, ts, offset)
 		return ts - ts%86400 - int64(offset) + 86400
 	} else if ok, _ := regexp.Match(`\d{4}-\d{2}-\d{2}$`, []byte(arg)); ok {
 		loc, _ := time.LoadLocation("Local")
