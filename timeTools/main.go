@@ -20,19 +20,34 @@ type AlfredItem struct {
 	} `json:"icon"`
 }
 
+var Keywords = map[string]int{
+	"NOW":       1,
+	"YESTERDAY": 2,
+	"YSD":       2,
+	"TODAY":     3,
+	"TOMORROW":  4,
+	"TMW":       4,
+}
+
 func str2TS(arg string) int64 {
-	if strings.ToUpper(arg) == "NOW" {
-		return time.Now().Unix()
-	} else if strings.ToUpper(arg) == "TODAY" {
+	if value, ok := Keywords[strings.ToUpper(arg)]; ok {
 		t := time.Now()
 		ts := t.Unix()
-		_, offset := t.Local().Zone()
-		return ts - ts%86400 - int64(offset)
-	} else if strings.ToUpper(arg) == "TOMORROW" {
-		t := time.Now()
-		ts := t.Unix()
-		_, offset := t.Local().Zone()
-		return ts - ts%86400 - int64(offset) + 86400
+		switch value {
+		case 1:
+			return ts
+		case 2:
+			_, offset := t.Local().Zone()
+			return ts - ts%86400 - int64(offset) - 86400
+		case 3:
+			_, offset := t.Local().Zone()
+			return ts - ts%86400 - int64(offset)
+		case 4:
+			_, offset := t.Local().Zone()
+			return ts - ts%86400 - int64(offset) + 86400
+		default:
+			return 0
+		}
 	} else if ok, _ := regexp.Match(`\d{4}-\d{2}-\d{2}$`, []byte(arg)); ok {
 		loc, _ := time.LoadLocation("Local")
 		ts, _ := time.ParseInLocation("2006-01-02", arg, loc)
