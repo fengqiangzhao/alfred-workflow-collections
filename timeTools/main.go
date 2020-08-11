@@ -23,13 +23,25 @@ type AlfredItem struct {
 func str2TS(arg string) int64 {
 	if strings.ToUpper(arg) == "NOW" {
 		return time.Now().Unix()
-	} else if ok, _ := regexp.Match(`\d{4}-\d{2}-\d{2}`, []byte(arg)); ok {
+	} else if strings.ToUpper(arg) == "TODAY" {
+		t := time.Now()
+		ts := t.Unix()
+		_, offset := t.Local().Zone()
+		fmt.Println(t, ts, offset)
+		return ts - ts%86400 - int64(offset)
+	} else if strings.ToUpper(arg) == "TOMORROW" {
+		t := time.Now()
+		ts := t.Unix()
+		_, offset := t.Local().Zone()
+		fmt.Println(t, ts, offset)
+		return ts - ts%86400 - int64(offset) + 86400
+	} else if ok, _ := regexp.Match(`\d{4}-\d{2}-\d{2}$`, []byte(arg)); ok {
 		loc, _ := time.LoadLocation("Local")
-		ts, _ := time.ParseInLocation("01/02/2006", arg, loc)
+		ts, _ := time.ParseInLocation("2006-01-02", arg, loc)
 		return ts.Unix()
-	} else if ok, _ := regexp.Match(`\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}`, []byte(arg)); ok {
+	} else if ok, _ := regexp.Match(`\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$`, []byte(arg)); ok {
 		loc, _ := time.LoadLocation("Local")
-		ts, _ := time.ParseInLocation("2006-01-01 12:33:36", arg, loc)
+		ts, _ := time.ParseInLocation("2006-01-02 15:04:05", arg, loc)
 		return ts.Unix()
 	} else {
 		return 0
@@ -37,17 +49,18 @@ func str2TS(arg string) int64 {
 }
 
 func generateResponse(ts int64) {
-	r := AlfredItem{
+	r := make([]AlfredItem, 0)
+	r = append(r, AlfredItem{
 		Type:     "file",
 		Title:    strconv.FormatInt(ts, 10),
 		Subtitle: "时间戳",
-		Arg:      fmt.Sprint("%d", ts),
+		Arg:      fmt.Sprintf("%d", ts),
 		Icon:     struct{ Path string `json:"path"` }{Path: "icon.png"},
-	}
+	})
 	finalRes, _ := json.Marshal(struct {
-		Item AlfredItem `json:"item"`
+		Items []AlfredItem `json:"items"`
 	}{
-		Item: r,
+		Items: r,
 	})
 	fmt.Println(string(finalRes))
 }
